@@ -1,43 +1,60 @@
-"""GUI model  <->  engine.
+"""GUI model <-> NR load-flow engine."""
 
-The ONLY module that knows the engine's data classes.  If your engine package
-is not called ``engine``, change ENGINE_PKG below (nothing else).
-
-Engine contract assumed (from your models.py / solver.py):
-    engine.models : Network, Bus, Generator, Branch   (MATPOWER-style flat lists)
-    engine.solver : StudyOptions, solve_load_flow(network, options)
-    result.bus_ids / voltage_magnitude / voltage_angle_deg / p_injection_mw /
-    q_injection_mvar are arrays in the SAME order; branch_results has one entry
-    per branch passed in, in the same order.
-
-How GUI features that the engine lacks are provided here:
-    * constant-Z load      -> converted to a bus shunt (Gs = P, Bs = -Q at 1 pu)
-    * tap on the TO side   -> converted to an equivalent FROM-side tap
-    * global load scaling  -> applied while building the engine network
-    * previous-solution start -> engine bus vm/va are seeded from last result
-    * generator P/Q results   -> recovered from bus injections
-    * worst-mismatch buses on divergence -> recomputed from the final V
-"""
 from __future__ import annotations
 
 import importlib
 import math
+import sys
+from pathlib import Path
 from dataclasses import asdict, dataclass, field
 from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 
+# ---------------------------------------------------------
+# Project root: parent directory containing GUI/ and NR/
+# ---------------------------------------------------------
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+# ---------------------------------------------------------
+# GUI-local imports
+# ---------------------------------------------------------
+
 from check import ERROR, Issue, check_network
 from model import BIG_Q, Network
 
-ENGINE_PKG = "NR_Solver"
+# ---------------------------------------------------------
+# NR solver imports
+# ---------------------------------------------------------
+
+ENGINE_PKG = "NR_Solver.loadflow"
 
 
 def _eng():
-    return (importlib.import_module(f"{ENGINE_PKG}.models"),
-            importlib.import_module(f"{ENGINE_PKG}.solver"))
+    """Import NR solver modules."""
 
+    try:
+        models = importlib.import_module(f"{ENGINE_PKG}.models")
+        solver = importlib.import_module(f"{ENGINE_PKG}.solver")
 
+    except ModuleNotFoundError as exc:
+        raise ImportError(
+            "Could not import NR.Loadflow.\n"
+            "Expected project structure:\n"
+            "Project_Root/\n"
+            "    GUI/\n"
+            "    NR/\n"
+            "        Loadflow/\n"
+            "            __init__.py\n"
+            "            models.py\n"
+            "            solver.py"
+        ) from exc
+
+    return models, solver
 # ---------------------------------------------------------------- study settings
 @dataclass
 class StudySettings:

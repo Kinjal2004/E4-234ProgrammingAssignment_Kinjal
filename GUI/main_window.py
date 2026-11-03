@@ -15,7 +15,7 @@ from PySide6.QtWidgets import (QApplication, QCheckBox, QDialog, QDialogButtonBo
                                QSpinBox, QComboBox, QVBoxLayout, QWidget)
 
 import report
-from adapter import GuiResults, StudySettings, run_study
+from .adapter import GuiResults, StudySettings, run_study
 from canvas import BUS_W, PaletteList, SldScene, SldView, snap
 from check import ERROR, check_network, has_errors
 from layout import auto_layout
@@ -23,6 +23,11 @@ from matpower_io import export_matpower, load_matpower
 from model import ELEMENT_TABLES, Network
 from props import PropertiesPanel
 from results_view import ResultsDock
+from .adapter import (
+    StudySettings,
+    run_study,
+    GuiResults
+)
 
 APP_NAME = "E4 234 Load Flow Simulator"
 VERSION = "1.0"
