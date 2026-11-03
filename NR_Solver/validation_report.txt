@@ -1,0 +1,149 @@
+
+====================================================================================================
+  SIMULATION CONFIGURATION
+====================================================================================================
+Parameter             | Setting       
+----------------------+---------------
+Algorithm             | Newton-Raphson
+Coordinate system     | Polar         
+Initialization        | Flat start    
+Convergence tolerance | 1.0e-08 pu    
+Maximum iterations    | 20            
+Q-limit enforcement   | Disabled      
+Benchmark repetitions | 5             
+Reference solver      | MATPOWER      
+
+====================================================================================================
+  TEST CASE: CASE14
+====================================================================================================
+
+[1] NUMERICAL VALIDATION
+Validation criterion      | Measured value   | Acceptance limit | Status
+--------------------------+------------------+------------------+-------
+Convergence               | True             | Converged        | PASS  
+Maximum mismatch          | 1.030e-14 pu     | <= 1.0e-08 pu    | PASS  
+Voltage magnitude error   | 6.661e-16 pu     | <= 1.0e-04 pu    | PASS  
+Voltage angle error       | 0.000000 deg     | <= 0.01 deg      | PASS  
+Maximum branch-flow error | 0.000000 MW/MVAr | <= 0.01 MW/MVAr  | PASS  
+Active power loss error   | 0.000000 %       | <= 0.1 %         | PASS  
+
+[2] MATPOWER REFERENCE COMPARISON
+Parameter         | Local solver | MATPOWER reference
+------------------+--------------+-------------------
+NR iterations     | 4            | 4                 
+Active power loss | 13.393272 MW | 13.393272 MW      
+
+[3] PERFORMANCE BENCHMARK
+Performance metric         | Measured value
+---------------------------+---------------
+Number of timed runs       | 5             
+Average solve time         | 2.0670 ms     
+Standard deviation         | 0.0225 ms     
+Average time per iteration | 0.5168 ms     
+
+CASE ACCEPTANCE STATUS: PASS
+
+====================================================================================================
+  TEST CASE: CASE30
+====================================================================================================
+
+[1] NUMERICAL VALIDATION
+Validation criterion      | Measured value   | Acceptance limit | Status
+--------------------------+------------------+------------------+-------
+Convergence               | True             | Converged        | PASS  
+Maximum mismatch          | 9.570e-10 pu     | <= 1.0e-08 pu    | PASS  
+Voltage magnitude error   | 5.551e-16 pu     | <= 1.0e-04 pu    | PASS  
+Voltage angle error       | 0.000000 deg     | <= 0.01 deg      | PASS  
+Maximum branch-flow error | 0.000000 MW/MVAr | <= 0.01 MW/MVAr  | PASS  
+Active power loss error   | 0.000000 %       | <= 0.1 %         | PASS  
+
+[2] MATPOWER REFERENCE COMPARISON
+Parameter         | Local solver | MATPOWER reference
+------------------+--------------+-------------------
+NR iterations     | 3            | 3                 
+Active power loss | 2.443803 MW  | 2.443803 MW       
+
+[3] PERFORMANCE BENCHMARK
+Performance metric         | Measured value
+---------------------------+---------------
+Number of timed runs       | 5             
+Average solve time         | 7.1497 ms     
+Standard deviation         | 0.0189 ms     
+Average time per iteration | 2.3832 ms     
+
+CASE ACCEPTANCE STATUS: PASS
+
+====================================================================================================
+  TEST CASE: CASE57
+====================================================================================================
+
+[1] NUMERICAL VALIDATION
+Validation criterion      | Measured value   | Acceptance limit | Status
+--------------------------+------------------+------------------+-------
+Convergence               | True             | Converged        | PASS  
+Maximum mismatch          | 1.542e-12 pu     | <= 1.0e-08 pu    | PASS  
+Voltage magnitude error   | 1.554e-15 pu     | <= 1.0e-04 pu    | PASS  
+Voltage angle error       | 0.000000 deg     | <= 0.01 deg      | PASS  
+Maximum branch-flow error | 0.000000 MW/MVAr | <= 0.01 MW/MVAr  | PASS  
+Active power loss error   | 0.000000 %       | <= 0.1 %         | PASS  
+
+[2] MATPOWER REFERENCE COMPARISON
+Parameter         | Local solver | MATPOWER reference
+------------------+--------------+-------------------
+NR iterations     | 4            | 4                 
+Active power loss | 27.863752 MW | 27.863752 MW      
+
+[3] PERFORMANCE BENCHMARK
+Performance metric         | Measured value
+---------------------------+---------------
+Number of timed runs       | 5             
+Average solve time         | 36.8960 ms    
+Standard deviation         | 0.2051 ms     
+Average time per iteration | 9.2240 ms     
+
+CASE ACCEPTANCE STATUS: PASS
+
+====================================================================================================
+  TEST CASE: CASE118
+====================================================================================================
+
+[1] NUMERICAL VALIDATION
+Validation criterion      | Measured value   | Acceptance limit | Status
+--------------------------+------------------+------------------+-------
+Convergence               | True             | Converged        | PASS  
+Maximum mismatch          | 1.147e-10 pu     | <= 1.0e-08 pu    | PASS  
+Voltage magnitude error   | 4.441e-16 pu     | <= 1.0e-04 pu    | PASS  
+Voltage angle error       | 0.000000 deg     | <= 0.01 deg      | PASS  
+Maximum branch-flow error | 0.000000 MW/MVAr | <= 0.01 MW/MVAr  | PASS  
+Active power loss error   | 0.000000 %       | <= 0.1 %         | PASS  
+IEEE 118 iteration limit  | 4 iterations     | <= 7 iterations  | PASS  
+
+[2] MATPOWER REFERENCE COMPARISON
+Parameter         | Local solver  | MATPOWER reference
+------------------+---------------+-------------------
+NR iterations     | 4             | 4                 
+Active power loss | 132.862872 MW | 132.862872 MW     
+
+[3] PERFORMANCE BENCHMARK
+Performance metric         | Measured value
+---------------------------+---------------
+Number of timed runs       | 5             
+Average solve time         | 108.8551 ms   
+Standard deviation         | 0.8564 ms     
+Average time per iteration | 27.2138 ms    
+
+CASE ACCEPTANCE STATUS: PASS
+
+====================================================================================================
+  OVERALL TEST SUMMARY
+====================================================================================================
+Test case | NR iterations | Average solve time | Result
+----------+---------------+--------------------+-------
+case14    | 4             | 2.0670 ms          | PASS  
+case30    | 3             | 7.1497 ms          | PASS  
+case57    | 4             | 36.8960 ms         | PASS  
+case118   | 4             | 108.8551 ms        | PASS  
+
+====================================================================================================
+FINAL ACCEPTANCE STATUS: PASS
+====================================================================================================
