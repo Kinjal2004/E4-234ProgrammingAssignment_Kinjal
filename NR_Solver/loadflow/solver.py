@@ -34,7 +34,7 @@ class LoadFlowResult:
     message: str
 
 
-def solve_load_flow(network, options=None):
+def solve_load_flow(network, options):
     options = options or StudyOptions()
     if options.tolerance <= 0 or options.max_iterations < 1:
         raise ValueError("Tolerance and maximum iterations must be positive")
