@@ -33,12 +33,11 @@ def calculate_branch_results(network, mapping, vm, va):
 
 
 def make_result(network, compiled, vm, va, converged, iterations, mismatch,
-                elapsed, history, message):
-    p, q = calculate_power(compiled.Ybus, vm, va)
+                elapsed, history, message,log=None, q_limited=None):
+    p, q = calculate_power(compiled.Ybus, vm,va)
     p_mw = p * network.base_mva
     q_mvar = q * network.base_mva
-    branch_results = calculate_branch_results(
-        network, compiled.index.bus_id_to_idx, vm, va)
+    branch_results = calculate_branch_results(network, compiled.index.bus_id_to_idx, vm, va)
     return {
         "converged": converged,
         "iterations": iterations,
@@ -54,4 +53,7 @@ def make_result(network, compiled, vm, va, converged, iterations, mismatch,
         "total_q_loss_mvar": sum(x.q_loss_mvar for x in branch_results),
         "mismatch_history": list(history),
         "message": message,
+        "log": list(log or []),                                           # NEW
+        "q_limited": {compiled.index.idx_to_bus_id[i]: v                  # NEW
+                      for i, v in (q_limited or {}).items()},
     }

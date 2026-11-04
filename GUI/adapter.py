@@ -194,7 +194,13 @@ def to_engine(net: Network, settings: StudySettings, prev: Optional[GuiResults] 
         if not ld.in_service:
             continue
         P, Q = ld.p_mw * settings.load_scale, ld.q_mvar * settings.load_scale
-        z, i, p = ld.coefficients()          # I part is folded into constant PQ (approximation)
+        if getattr(ld, "model", "const_pq") == "const_z":
+            # A constant-impedance load is represented entirely as a bus shunt.
+            # P and Q are its consumption at |V| = 1 pu.
+            z, i, p = 1.0, 0.0, 0.0
+        else:
+            z, i, p = ld.coefficients()      # I part is folded into constant PQ (approximation)
+
         e, d = ebus[ld.bus], mp.bus_load[ld.bus]
         e.pd_mw += (i + p) * P
         e.qd_mvar += (i + p) * Q
@@ -268,15 +274,18 @@ def map_results(net: Network, mp: Mapping, res, settings: StudySettings) -> GuiR
     ids = [int(i) for i in res.bus_ids]
     vm_a, va_a = np.asarray(res.voltage_magnitude), np.asarray(res.voltage_angle_deg)
     out.vm_va = {n: (float(vm_a[k]), float(va_a[k])) for k, n in enumerate(ids)}
+
+    # ---- iteration log: NR mismatches, final message, then the engine's PV/PQ switch events
     for k, h in enumerate(out.mismatch_history):
         out.log.append(f"iteration {k:2d}   max mismatch = {h:.3e} pu")
     out.log.append(out.message)
+    out.log.extend(getattr(res, "log", None) or [])
+    q_lim = getattr(res, "q_limited", None) or {}        # {bus_id: "Qmax" | "Qmin"}
     if not out.converged:
         return out
 
     pinj = {n: float(res.p_injection_mw[k]) for k, n in enumerate(ids)}
     qinj = {n: float(res.q_injection_mvar[k]) for k, n in enumerate(ids)}
-    base = net.base_mva
 
     # ---- generators / external grid: Pg = P_inj + PQ-load, same for Q
     for bus, (kind, eid) in sorted(mp.gen_at.items()):
@@ -289,11 +298,14 @@ def map_results(net: Network, mp: Mapping, res, settings: StudySettings) -> GuiR
             e = net.generators[eid]
             st = "fixed"
             if e.control_voltage:
-                st = "ok"
-                if q > e.qmax_mvar + 1e-4:
+                if bus in q_lim:
+                    st = f"at {q_lim[bus]}"
+                elif q > e.qmax_mvar + 1e-4:
                     st = "Qmax violated"
                 elif q < e.qmin_mvar - 1e-4:
                     st = "Qmin violated"
+                else:
+                    st = "ok"
                 p = e.p_mw
             out.gens.append(GenRow(kind, eid, e.name, bus, p, q, e.qmin_mvar, e.qmax_mvar, st))
     gen_pq = {g.bus: (g.p, g.q) for g in out.gens}
@@ -341,7 +353,6 @@ def map_results(net: Network, mp: Mapping, res, settings: StudySettings) -> GuiR
     if abs(imb) > 0.01:
         out.log.append(f"WARNING: power balance off by {imb:.4f} MW - check the engine's P-injection convention")
     return out
-
 
 def worst_mismatch_buses(enet, res, n: int = 3) -> List[int]:
     """Buses with the largest P/Q mismatch at the last iterate (for divergence highlighting)."""

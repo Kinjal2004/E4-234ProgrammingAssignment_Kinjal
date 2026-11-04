@@ -15,6 +15,7 @@ from matplotlib.figure import Figure
 
 GREY = QBrush(QColor("#9a9a9a"))
 STATUS_COL = {"under": QColor("#1f6feb"), "over": QColor("#c026d3"), "warn": QColor("#b45309"),
+              "at Qmax": QColor("#b45309"), "at Qmin": QColor("#b45309"),
               "Qmax violated": QColor("#dc2626"), "Qmin violated": QColor("#dc2626")}
 
 

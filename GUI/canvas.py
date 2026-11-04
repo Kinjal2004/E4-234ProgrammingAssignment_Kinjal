@@ -333,22 +333,24 @@ class SldScene(QGraphicsScene):
             self.show_grid = grid
         if self._net is not None:
             self.apply_visuals()
-        self.update()
+        self.invalidate(self.sceneRect(), QGraphicsScene.SceneLayer.BackgroundLayer)
 
     def drawBackground(self, p: QPainter, rect: QRectF):
         super().drawBackground(p, rect)
         if not self.show_grid:
             return
-        p.setPen(QPen(QColor("#d8d8d8"), 0))
-        x0, y0 = int(rect.left() // GRID) * GRID, int(rect.top() // GRID) * GRID
-        x = x0
+        minor = QPen(QColor("#e6e6e6"), 0)      # width 0 = always 1 px, whatever the zoom
+        major = QPen(QColor("#c4c4c4"), 0)      # every 5th line, darker
+        x = int(rect.left() // GRID) * GRID
         while x < rect.right():
-            y = y0
-            while y < rect.bottom():
-                p.drawPoint(QPointF(x, y))
-                y += GRID
+            p.setPen(major if int(round(x / GRID)) % 5 == 0 else minor)
+            p.drawLine(QPointF(x, rect.top()), QPointF(x, rect.bottom()))
             x += GRID
-
+        y = int(rect.top() // GRID) * GRID
+        while y < rect.bottom():
+            p.setPen(major if int(round(y / GRID)) % 5 == 0 else minor)
+            p.drawLine(QPointF(rect.left(), y), QPointF(rect.right(), y))
+            y += GRID
     # ---- tools -------------------------------------------------------------
     def set_tool(self, tool: Optional[str]):
         self.tool, self.pending = tool, None
@@ -484,6 +486,10 @@ class SldView(QGraphicsView):
     def set_legend(self, visible: bool):
         self.legend.setVisible(visible)
         self._place_legend()
+
+    def mousePressEvent(self, ev):
+        self.setFocus()
+        super().mousePressEvent(ev)
 
     def _place_legend(self):
         self.legend.move(self.viewport().width() - self.legend.width() - 8, 8)

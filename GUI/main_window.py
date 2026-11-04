@@ -31,8 +31,8 @@ from .adapter import (
 
 APP_NAME = "E4 234 Load Flow Simulator"
 VERSION = "1.0"
-STUDENT_NAME = "Your Name"          # <- fill in (shown in Help > About)
-ROLL_NUMBER = "Your Roll Number"    # <- fill in
+STUDENT_NAME = "Kinjal Bhattcharyya"          # <- fill in (shown in Help > About)
+ROLL_NUMBER = "27889"    # <- fill in
 MAX_UNDO = 50
 
 
@@ -149,7 +149,9 @@ class MainWindow(QMainWindow):
         self.a_redo = A("Redo", self.do_redo, ["Ctrl+Y", "Ctrl+Shift+Z"])
         self.a_copy = A("Copy", self.copy_sel, "Ctrl+C")
         self.a_paste = A("Paste", self.paste, "Ctrl+V")
-        self.a_del = A("Delete", self.delete_selected, "Del")
+        self.a_del = A("Delete", self.delete_selected,
+               [QKeySequence.StandardKey.Delete, "Backspace"])
+        self.a_del.setShortcutContext(Qt.ShortcutContext.ApplicationShortcut)
         self.a_all = A("Select all", self.select_all, "Ctrl+A")
         self.a_find = A("Find element\u2026", self.find_element, "Ctrl+F")
 
@@ -323,20 +325,40 @@ class MainWindow(QMainWindow):
     def on_attach(self, kind: str, bus: int):
         has_gen = any(g.bus == bus for g in self.net.generators.values())
         has_ext = any(g.bus == bus for g in self.net.ext_grids.values())
+
         if kind in ("generator", "ext_grid") and (has_gen or has_ext):
-            self.statusBar().showMessage("Only one generator / external grid per bus is supported", 6000)
+            self.statusBar().showMessage(
+                "Only one generator / external grid per bus", 6000
+            )
             return
+
+        # Record existing IDs before insertion
+        old_ids = set(self.net.table(kind).keys())
 
         def fn():
             if kind == "generator":
-                self.net.add_generator(bus, p_mw=50.0, qmin_mvar=-50.0, qmax_mvar=50.0)
+                self.net.add_generator(
+                    bus, p_mw=50.0, qmin_mvar=-50.0, qmax_mvar=50.0
+                )
             elif kind == "ext_grid":
                 self.net.add_ext_grid(bus)
             elif kind == "load":
                 self.net.add_load(bus, p_mw=10.0, q_mvar=5.0)
             else:
                 self.net.add_shunt(bus, b_mvar=10.0)
+
         self.edit(fn)
+
+        # Identify the newly created element
+        new_ids = set(self.net.table(kind).keys()) - old_ids
+
+        if new_ids:
+            new_id = next(iter(new_ids))
+            item = self.scene.select_element(kind, new_id)
+
+            if item is not None:
+                self.on_selection()
+                self.focus_properties()
 
     def on_connect(self, kind: str, a: int, b: int):
         def fn():

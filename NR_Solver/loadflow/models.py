@@ -110,3 +110,5 @@ class LoadFlowResult:
     total_q_loss_mvar: float = 0.0
     mismatch_history: list = field(default_factory=list)
     message: str = ""
+    log: list = field(default_factory=list)          # PV/PQ switch messages
+    q_limited: dict = field(default_factory=dict)    # {bus_id: "Qmax" | "Qmin"}

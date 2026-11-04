@@ -65,9 +65,13 @@ SPECS = {
         F("q_mvar", "Q (when not PV)", "MVAr", pu=True), F("in_service", "In service", "", "bool")],
     "load": lambda e: [
         F("name", "Name", "", "str"), F("bus", "Bus", "", "int", ro=True),
-        F("p_mw", "P", "MW", pu=True), F("q_mvar", "Q", "MVAr", pu=True),
+        F("p_mw", "P at 1 pu" if e.model == "const_z" else "P",
+          "MW", pu=True),
+        F("q_mvar", "Q at 1 pu" if e.model == "const_z" else "Q",
+          "MVAr", pu=True),
         F("pf", "or power factor (lagging)", "", optional=True),
-        F("model", "Load model", "", "choice", choices=(("const_pq", "constant PQ"), ("const_z", "constant Z"))),
+        F("model", "Load model", "", "choice",
+          choices=(("const_pq", "constant PQ"), ("const_z", "constant Z"))),
         F("in_service", "In service", "", "bool")],
     "shunt": lambda e: [
         F("name", "Name", "", "str"), F("bus", "Bus", "", "int", ro=True),
@@ -140,6 +144,8 @@ class PropertiesPanel(QWidget):
                 w.setCurrentIndex(values.index(cur) if cur in values else 0)
                 if f.attr == "input_mode":
                     w.currentIndexChanged.connect(self._mode_changed)
+                elif f.attr == "model" and self.kind == "load":
+                    w.currentIndexChanged.connect(self._load_model_changed)
                 self.form.addRow(f.label, w)
             else:
                 val = getattr(e, f.attr, None) if f.attr != "pf" else None
@@ -164,6 +170,11 @@ class PropertiesPanel(QWidget):
             self.note.setText(f"On {base:g} MVA base:  R = {r:.5f}  X = {x:.5f}  B = {b:.5f} pu")
         elif self.kind == "bus":
             self.note.setText("Bus type (slack / PV / PQ) is derived from the connected elements.")
+        elif self.kind == "load" and e.model == "const_z":
+            self.note.setText(
+                "Constant-Z load: P and Q are reference consumption at 1.0 pu. "
+                "Actual P and Q vary with |V|^2."
+            )
         else:
             self.note.setText("")
         self.btn.setEnabled(True)
@@ -180,6 +191,33 @@ class PropertiesPanel(QWidget):
         def rebuild():                       # deferred: never delete a widget inside its own signal handler
             self.elem.input_mode = mode
             self._build()
+        QTimer.singleShot(0, rebuild)
+
+    def _load_model_changed(self):
+        """Rebuild load fields when switching between PQ and Z representations."""
+        model = self.w["model"].currentData()
+
+        # Preserve edits made in the current form before its widgets are destroyed.
+        for attr in ("p_mw", "q_mvar"):
+            widget = self.w.get(attr)
+            if isinstance(widget, QLineEdit):
+                try:
+                    setattr(self.elem, attr, float(widget.text().strip()))
+                except ValueError:
+                    pass
+
+        pf_widget = self.w.get("pf")
+        if isinstance(pf_widget, QLineEdit):
+            text = pf_widget.text().strip()
+            try:
+                self.elem.pf = float(text) if text else None
+            except ValueError:
+                pass
+
+        def rebuild():                       # defer deletion of the active combo box
+            self.elem.model = model
+            self._build()
+
         QTimer.singleShot(0, rebuild)
 
     # ---- validation -----------------------------------------------------------
